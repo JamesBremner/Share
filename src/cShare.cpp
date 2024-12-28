@@ -1,5 +1,6 @@
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 #include "cShare.h"
 
@@ -10,15 +11,35 @@ int cShare::value(int r, int c) const
         return 0;
     return it->second;
 }
+int cShare::assign(int r, int c) const
+{
+    auto it = myAssign.find(std::make_pair(r, c));
+    if (it == myAssign.end())
+        return 0;
+    return it->second;
+}
 int cShare::consumerCount() const
 {
     int count = 0;
-    for( auto m : myValueLinear )
+    for (auto m : myValueLinear)
     {
-        if( m.first.second > count )
+        if (m.first.second > count)
             count = m.first.second;
     }
-    return count+1;
+    return count + 1;
+}
+
+cShare::rcv_t cShare::bestValueLinear() const
+{
+    rcv_t best;
+    best.second = 0;
+    for (auto &rcv : myValueLinear)
+        if (rcv.second > best.second)
+        {
+            if (myResourceTotalQuantity[rcv.first.first])
+                best = rcv;
+        }
+    return best;
 }
 
 void readFile(
@@ -50,23 +71,53 @@ void readFile(
         }
     }
 }
-std::string text( const cShare& S )
+
+void solve1(cShare &S)
+{
+    while (1)
+    {
+        auto best = S.bestValueLinear();
+        if (!best.second)
+            break;
+        best.second = S.resourceQuantity(best.first.first);
+        S.addAssign(best);
+        S.subResourceTotalQuantity(best.first.first, best.second);
+    }
+}
+std::string text(const cShare &S)
 {
     std::stringstream ss;
     ss << S.resourceCount() << " resources, "
-        << S.consumerCount() << " consumers\n";
+       << S.consumerCount() << " consumers\n";
     ss << "\nResource Quantity\n";
-    for( int k = 0; k < S.resourceCount(); k++ )
-        ss << k <<"\t"<< S.resourceQuantity(k) << "\n";
+    for (int k = 0; k < S.resourceCount(); k++)
+        ss << k << "\t" << S.resourceQuantity(k) << "\n";
     ss << "\nValues\nResource\tConsumer\tValue / Unit\n";
-    for( int r = 0; r < S.resourceCount(); r++ )
-    for( int c = 0; c < S.consumerCount(); c++ )
-    {
-        int v = S.value(r,c);
-        if( v > 0 )
-            ss <<"    "<< r 
-            <<"\t\t"<< c 
-            <<"\t\t"<< v << "\n";
-    }
+    for (int r = 0; r < S.resourceCount(); r++)
+        for (int c = 0; c < S.consumerCount(); c++)
+        {
+            int v = S.value(r, c);
+            if (v > 0)
+                ss << "    " << r
+                   << "\t\t" << c
+                   << "\t\t" << v << "\n";
+        }
+    ss << "\nAssignments\nResource\tConsumer\tUnits Assigned\n";
+    int totalValue = 0;
+    for (int r = 0; r < S.resourceCount(); r++)
+        for (int c = 0; c < S.consumerCount(); c++)
+        {
+            int a = S.assign(r, c);
+            if (!a)
+                continue;
+            int v = a * S.value(r, c);
+            totalValue += v;
+            ss << "    " << r
+               << "\t\t" << c
+               << "\t\t" << a
+               << "\t\t" << v
+               << "\n";
+        }
+    ss << "Total Value " << totalValue << "\n";
     return ss.str();
 }
