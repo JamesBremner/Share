@@ -7,6 +7,8 @@
 #include <wex.h>
 #include "cStarterGUI.h"
 
+#include "cShare.h"
+
 class cGUI : public cStarterGUI
 {
 public:
@@ -29,6 +31,9 @@ private:
 
 main()
 {
+    cShare S;
+    readFile(S,"../dat/dat1.txt");
+    std::cout << text(S);
     cGUI theGUI;
     return 0;
 }
