@@ -2,25 +2,41 @@
 #include <vector>
 #include <map>
 
+/// @brief A consumer converts resources into value
+struct sConsumer
+{
+    int myCapacityAllResources;
+    std::vector<int> myCapacityEachResource;
+};
+
 class cShare
 {
     typedef std::pair<std::pair<int,int>,int> rcv_t;
     typedef std::map<std::pair<int, int>, int> rcmap_t;
     std::vector<int> myResourceTotalQuantity;
+    std::vector<sConsumer> myConsumers;
     rcmap_t myValueLinear;
     rcmap_t myAssign;
     int myV;
 
 public:
     enum class eProblem {
+        none,
         linear,
+        consumer_capacity_resource_units,
     };
     eProblem myProblemType;
+
+    cShare()
+    : myProblemType( eProblem::none)
+    {}
 
     void setProblemType( eProblem t )
     {
         myProblemType = t;
     }
+    void setConsumerCapacity( int c, int v );
+
     void clear()
     {
         myResourceTotalQuantity.clear();
@@ -66,6 +82,7 @@ public:
     {
         return myResourceTotalQuantity[r];
     }
+    int getConsumerCapacity( int c ) const;
 
 };
 
@@ -79,6 +96,8 @@ void solve( cShare& S);
 /// @param S 
 
 void solve1(
+    cShare &S);
+void solve2(
     cShare &S);
 
 

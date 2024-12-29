@@ -4,6 +4,27 @@
 
 #include "cShare.h"
 
+void cShare::setConsumerCapacity(int c, int v)
+{
+    switch (myProblemType)
+    {
+    case eProblem::consumer_capacity_resource_units:
+        break;
+    default:
+        throw std::runtime_error(
+            "setConsumerCapacity wrong problem type");
+    }
+    if (c >= myConsumers.size())
+        myConsumers.resize(c);
+    myConsumers[c].myCapacityAllResources = v;
+}
+int cShare::getConsumerCapacity(int c) const
+{
+    if (0 > c || c >= myConsumers.size())
+        throw std::runtime_error(
+            "ConsumerCapacity bad parameter " + std::to_string(c));
+    return myConsumers[c].myCapacityAllResources;
+}
 int cShare::value(int r, int c) const
 {
     auto it = myValueLinear.find(std::make_pair(r, c));
@@ -60,11 +81,13 @@ void readFile(
         if (ltype[0] == 'p')
         {
             ifs >> ltype;
-            if( ltype[0] == 'l' )
+            if (ltype[0] == 'l')
                 S.setProblemType(cShare::eProblem::linear);
+            else if (ltype[0] == 'c')
+                S.setProblemType(cShare::eProblem::consumer_capacity_resource_units);
             else
                 throw std::runtime_error(
-                    "Unrecognized problem type " + ltype                );
+                    "Unrecognized problem type " + ltype);
         }
         else if (ltype[0] == 'r')
         {
@@ -78,15 +101,24 @@ void readFile(
             ifs >> r >> c >> v;
             S.addValueLinear(r, c, v);
         }
+        else if (ltype[0] == 'c')
+        {
+            int c, v;
+            ifs >> c >> v;
+            S.setConsumerCapacity(c, v);
+        }
     }
 }
 
-void solve(cShare& S )
+void solve(cShare &S)
 {
-    switch( S.myProblemType )
+    switch (S.myProblemType)
     {
-        case cShare::eProblem::linear:
+    case cShare::eProblem::linear:
         solve1(S);
+        break;
+    case cShare::eProblem::consumer_capacity_resource_units:
+        solve2(S);
         break;
     }
 }
@@ -102,6 +134,10 @@ void solve1(cShare &S)
         S.addAssign(best);
         S.subResourceTotalQuantity(best);
     }
+}
+void solve2(
+    cShare &S)
+{
 }
 std::string text(const cShare &S)
 {
@@ -121,6 +157,16 @@ std::string text(const cShare &S)
                    << "\t\t" << c
                    << "\t\t" << v << "\n";
         }
+
+    if (S.myProblemType == cShare::eProblem::consumer_capacity_resource_units)
+    {
+        ss << "\nConsumer capacity\n";
+        for (int c = 0; c < S.consumerCount(); c++)
+        {
+            ss << c << "\t\t" << S.getConsumerCapacity(c) << "\n";
+        }
+    }
+
     ss << "\nAssignments\nResource\tConsumer\tUnits Assigned\n";
     int totalValue = 0;
     for (int r = 0; r < S.resourceCount(); r++)
