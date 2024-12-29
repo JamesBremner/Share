@@ -12,6 +12,15 @@ class cShare
     int myV;
 
 public:
+    enum class eProblem {
+        linear,
+    };
+    eProblem myProblemType;
+
+    void setProblemType( eProblem t )
+    {
+        myProblemType = t;
+    }
     void clear()
     {
         myResourceTotalQuantity.clear();
@@ -23,9 +32,9 @@ public:
     {
         myResourceTotalQuantity.push_back(q);
     }
-     void subResourceTotalQuantity(int r, int q)
+     void subResourceTotalQuantity(const rcv_t& rcv)
      {
-        myResourceTotalQuantity[r] -= q;
+        myResourceTotalQuantity[rcv.first.first] -= rcv.second;
      }
     void addValueLinear(int r, int c, int v)
     {
@@ -64,7 +73,9 @@ void readFile(
     cShare &S,
     const std::string &fn);
 
-/// @brief  Strightforward greedy - assign best values first
+void solve( cShare& S);
+
+/// @brief  Straightforward greedy - assign best values first
 /// @param S 
 
 void solve1(

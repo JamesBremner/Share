@@ -57,7 +57,16 @@ void readFile(
         ifs >> ltype;
         if (!ifs.good())
             break;
-        if (ltype[0] == 'r')
+        if (ltype[0] == 'p')
+        {
+            ifs >> ltype;
+            if( ltype[0] == 'l' )
+                S.setProblemType(cShare::eProblem::linear);
+            else
+                throw std::runtime_error(
+                    "Unrecognized problem type " + ltype                );
+        }
+        else if (ltype[0] == 'r')
         {
             int q;
             ifs >> q;
@@ -72,6 +81,16 @@ void readFile(
     }
 }
 
+void solve(cShare& S )
+{
+    switch( S.myProblemType )
+    {
+        case cShare::eProblem::linear:
+        solve1(S);
+        break;
+    }
+}
+
 void solve1(cShare &S)
 {
     while (1)
@@ -81,7 +100,7 @@ void solve1(cShare &S)
             break;
         best.second = S.resourceQuantity(best.first.first);
         S.addAssign(best);
-        S.subResourceTotalQuantity(best.first.first, best.second);
+        S.subResourceTotalQuantity(best);
     }
 }
 std::string text(const cShare &S)

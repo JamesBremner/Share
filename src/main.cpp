@@ -33,7 +33,7 @@ main()
 {
     cShare S;
     readFile(S,"../dat/dat1.txt");
-    solve1(S);
+    solve(S);
     std::cout << text(S);
     cGUI theGUI;
     return 0;
