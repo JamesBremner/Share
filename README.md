@@ -4,13 +4,13 @@ Share resources among consumers to maximise value
 
 # Input
 
+P - the problem type
+
 R - the number of different resource types
 
 C - the number of different consumers
 
 Qr - total of resource type r available to be assigned
-
-L - true for linear problem, false for non-linear
 
 V1(r,c) - value of assigning one unit of resource r to consumer c, linear problem
 
