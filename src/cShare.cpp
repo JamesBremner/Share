@@ -15,52 +15,67 @@ void cShare::setConsumerCapacity(int c, int v)
             "setConsumerCapacity wrong problem type");
     }
     if (c >= myConsumers.size())
-        myConsumers.resize(c);
+        myConsumers.resize(c + 1);
     myConsumers[c].myCapacityAllResources = v;
 }
 int cShare::getConsumerCapacity(int c) const
 {
     if (0 > c || c >= myConsumers.size())
-        throw std::runtime_error(
-            "ConsumerCapacity bad parameter " + std::to_string(c));
+        return 0;
     return myConsumers[c].myCapacityAllResources;
+}
+int cShare::getConsumerCapacityInit(int c) const
+{
+    if (0 > c || c >= myConsumers.size())
+        return 0;
+    return myInitConsumers[c].myCapacityAllResources;
 }
 int cShare::value(int r, int c) const
 {
-    auto it = myValueLinear.find(std::make_pair(r, c));
-    if (it == myValueLinear.end())
-        return 0;
-    return it->second;
+    srcv target(r, c, 0);
+    for (auto &rcv : myValueLinear)
+        if (rcv == target)
+            return rcv.value;
+    return 0;
 }
 int cShare::assign(int r, int c) const
 {
-    auto it = myAssign.find(std::make_pair(r, c));
-    if (it == myAssign.end())
-        return 0;
-    return it->second;
-}
-int cShare::consumerCount() const
-{
-    int count = 0;
-    for (auto m : myValueLinear)
-    {
-        if (m.first.second > count)
-            count = m.first.second;
-    }
-    return count + 1;
+    srcv target(r, c, 0);
+    for (auto &rcv : myAssign)
+        if (rcv == target)
+            return rcv.value;
+    return 0;
 }
 
-cShare::rcv_t cShare::bestValueLinear() const
+int cShare::consumerCount() const
 {
-    rcv_t best;
-    best.second = 0;
-    for (auto &rcv : myValueLinear)
-        if (rcv.second > best.second)
+    return myConsumers.size();
+}
+
+// cShare::rcv_t cShare::bestValueLinear() const
+// {
+//     rcv_t best;
+//     best.second = 0;
+//     for (auto &rcv : myValueLinear)
+//         if (rcv.second > best.second)
+//         {
+//             if (myResourceTotalQuantity[rcv.first.first])
+//                 best = rcv;
+//         }
+//     return best;
+// }
+
+cShare::vrcv_t cShare::sortValue()
+{
+    vrcv_t ret = myValueLinear;
+
+    std::sort(
+        ret.begin(), ret.end(),
+        [](const srcv &a, const srcv &b)
         {
-            if (myResourceTotalQuantity[rcv.first.first])
-                best = rcv;
-        }
-    return best;
+            return a.value > b.value;
+        });
+    return ret;
 }
 
 void readFile(
@@ -72,15 +87,21 @@ void readFile(
     if (!ifs.is_open())
         throw std::runtime_error(
             "Cannot open " + fn);
+    parseInput(S, ifs);
+}
+void parseInput(
+    cShare &S,
+    std::istream &input)
+{
     std::string ltype;
     while (1)
     {
-        ifs >> ltype;
-        if (!ifs.good())
+        input >> ltype;
+        if (!input.good())
             break;
         if (ltype[0] == 'p')
         {
-            ifs >> ltype;
+            input >> ltype;
             if (ltype[0] == 'l')
                 S.setProblemType(cShare::eProblem::linear);
             else if (ltype[0] == 'c')
@@ -92,22 +113,24 @@ void readFile(
         else if (ltype[0] == 'r')
         {
             int q;
-            ifs >> q;
+            input >> q;
             S.addResourceTotalQuantity(q);
         }
         else if (ltype[0] == 'v')
         {
             int r, c, v;
-            ifs >> r >> c >> v;
+            input >> r >> c >> v;
             S.addValueLinear(r, c, v);
         }
         else if (ltype[0] == 'c')
         {
             int c, v;
-            ifs >> c >> v;
+            input >> c >> v;
             S.setConsumerCapacity(c, v);
         }
     }
+
+    S.initBackup();
 }
 
 void solve(cShare &S)
@@ -123,30 +146,46 @@ void solve(cShare &S)
     }
 }
 
-void solve1(cShare &S)
-{
-    while (1)
-    {
-        auto best = S.bestValueLinear();
-        if (!best.second)
-            break;
-        best.second = S.resourceQuantity(best.first.first);
-        S.addAssign(best);
-        S.subResourceTotalQuantity(best);
-    }
-}
+ void solve1(cShare &S)
+ {
+//     while (1)
+//     {
+//         auto best = S.bestValueLinear();
+//         if (!best.second)
+//             break;
+//         best.second = S.resourceQuantity(best.first.first);
+//         S.addAssign(best);
+//         S.subResourceTotalQuantity(best);
+//     }
+ }
 void solve2(
     cShare &S)
 {
+    auto sv = S.sortValue();
+    for( auto& rcv : sv )
+    {
+        int q = S.resourceQuantity(rcv.resource);
+        if( q < rcv.value )
+            rcv.value = q;
+        rcv.value = S.getConsumerCapacity(rcv.consumer);
+        if( rcv.value <= 0)
+            continue;
+        S.addAssign(rcv);
+        S.subResourceTotalQuantity(rcv);
+        S.subConsumerCapacity(rcv.consumer,rcv.value);
+    }
 }
 std::string text(const cShare &S)
 {
     std::stringstream ss;
     ss << S.resourceCount() << " resources, "
        << S.consumerCount() << " consumers\n";
-    ss << "\nResource Quantity\n";
+    ss << "\nResource Initial Quantity\n";
     for (int k = 0; k < S.resourceCount(); k++)
-        ss << k << "\t" << S.resourceQuantity(k) << "\n";
+        ss << k << "\t" << S.resourceQuantityInit(k) 
+            <<"\t"<< S.resourceQuantity(k)
+            << "\n";
+    
     ss << "\nValues\nResource\tConsumer\tValue / Unit\n";
     for (int r = 0; r < S.resourceCount(); r++)
         for (int c = 0; c < S.consumerCount(); c++)
@@ -160,10 +199,12 @@ std::string text(const cShare &S)
 
     if (S.myProblemType == cShare::eProblem::consumer_capacity_resource_units)
     {
-        ss << "\nConsumer capacity\n";
+        ss << "\nConsumer\tInitial\t\tCapacity\n";
         for (int c = 0; c < S.consumerCount(); c++)
         {
-            ss << c << "\t\t" << S.getConsumerCapacity(c) << "\n";
+            ss << c << "\t\t" << S.getConsumerCapacityInit(c) 
+                << "\t\t" << S.getConsumerCapacity(c)
+                << "\n";
         }
     }
 

@@ -1,4 +1,4 @@
-//#include "cShare.h"
+#include "cShare.h"
 
 class cStarterGUI
 {
@@ -77,7 +77,6 @@ public:
     }
 
 private:
-
     cShare S;
 
     void menus()
@@ -97,6 +96,16 @@ private:
                       solve(S);
                       std::cout << text(S);
                   });
+        mf.append("Unit tests",
+                  [&](const std::string &title)
+                  {
+                      if( ! test() ) {
+                        wex::msgbox("Unit Tests Failed");
+                        exit(1);
+                      }
+                      wex::msgbox("Unit Tests Passed");
+                  });
+
         mb.append("File", mf);
     }
 };

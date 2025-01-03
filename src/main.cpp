@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <wex.h>
 #include "cShare.h"
-#include "cStarterGUI.h"
+#include "cGUI.h"
 
 main()
 {

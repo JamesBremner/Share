@@ -22,6 +22,7 @@ CCflags = -std=c++17 $(OPT) -D_mingw_
 OBJ_starter = \
 	$(ODIR)/main.o \
 	$(ODIR)/cShare.o \
+	$(ODIR)/test.o \
 
 ### COMPILE
 
