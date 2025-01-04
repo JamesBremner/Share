@@ -161,15 +161,24 @@ void solve(cShare &S)
 void solve2(
     cShare &S)
 {
+    // try assigning resources to consumners that give greatest value
     auto sv = S.sortValue();
+    
     for( auto& rcv : sv )
     {
-        int q = S.resourceQuantity(rcv.resource);
-        if( q < rcv.value )
-            rcv.value = q;
-        rcv.value = S.getConsumerCapacity(rcv.consumer);
+        // limit to resource quantity
+        rcv.value = S.resourceQuantity(rcv.resource);
+
+        // Limit to consumer capacity in resource units
+        int c = S.getConsumerCapacity(rcv.consumer);
+        if( c <= rcv.value)
+            rcv.value = c;
+
+        // no unita available
         if( rcv.value <= 0)
             continue;
+
+        // assign resource to consumer
         S.addAssign(rcv);
         S.subResourceTotalQuantity(rcv);
         S.subConsumerCapacity(rcv.consumer,rcv.value);
@@ -208,7 +217,7 @@ std::string text(const cShare &S)
         }
     }
 
-    ss << "\nAssignments\nResource\tConsumer\tUnits Assigned\n";
+    ss << "\nAssignments\nResource\tConsumer\tUnits\t\tValue\n";
     int totalValue = 0;
     for (int r = 0; r < S.resourceCount(); r++)
         for (int c = 0; c < S.consumerCount(); c++)
