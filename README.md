@@ -4,17 +4,15 @@ Share resources among consumers to maximise value
 
 # Input
 
-P - the problem type
+Space delimites text file
 
-R - the number of different resource types
+p - the problem type
 
-C - the number of different consumers
+r - total of resource type available to be assigned
 
-Qr - total of resource type r available to be assigned
+v - value of assigning resource to consumer ( value / unit resource )
 
-V1(r,c) - value of assigning one unit of resource r to consumer c, linear problem
-
-V2(a,r,c) - value of assigning a units of resource r to consumer c, non-linear problem
+c - consumer capacity ( unit resources, all resources types assigned )
 
 # Output
 
