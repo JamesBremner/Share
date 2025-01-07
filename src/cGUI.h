@@ -67,7 +67,7 @@ class cGUI : public cStarterGUI
 public:
     cGUI()
         : cStarterGUI(
-              "Starter",
+              "Share",
               {50, 50, 1000, 500})
     {
         menus();
@@ -95,6 +95,7 @@ private:
                       readFile(S, paths);
                       solve(S);
                       std::cout << text(S);
+                      fm.update();
                   });
         mf.append("Unit tests",
                   [&](const std::string &title)
@@ -108,4 +109,11 @@ private:
 
         mb.append("File", mf);
     }
+    void draw(wex::shapes &sh)
+    {
+        sh.text(
+            textAssigns( S ),
+            {10,10,500,500}        );
+    }
+
 };

@@ -111,6 +111,11 @@ public:
     }
     int consumerCount() const;
 
+    int assignCount() const
+    {
+        return myAssign.size();
+    }
+
     int resourceQuantity(int r) const
     {
         return myResourceTotalQuantity[r];
@@ -129,6 +134,8 @@ public:
     {
         return myAssign;
     }
+
+    void sanity();
 };
 
 void readFile(
@@ -149,6 +156,8 @@ void solve2(
     cShare &S);
 
 std::string text(
+    const cShare &S);
+std::string textAssigns(
     const cShare &S);
 
 bool test();
